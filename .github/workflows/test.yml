@@ -25,6 +25,10 @@ jobs:
           choco install visualstudio2019buildtools -y
           choco install visualstudio2019-workload-vctools -y
 
+      - name: Verify signtool installation
+        run: |
+          Get-Command signtool.exe -ErrorAction Stop
+
       - name: Install dependencies
         shell: pwsh
         run: |
