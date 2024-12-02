@@ -1,38 +1,41 @@
-name: CI
+name: Build, Sign, and Publish
 
-on: [push, pull_request]
+on:
+  workflow_dispatch:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
 
-    services:
-      docker:
-        image: docker:20.10.2-dind
-        options: --privileged
-        env:
-          DOCKER_TLS_CERTDIR: /certs
+    env:
+      GH_TOKEN: ${{ secrets.GH_TOKEN }}
 
     steps:
-      - name: Checkout code
+      - name: Checkout repository
         uses: actions/checkout@v2
 
       - name: Set up Node.js
         uses: actions/setup-node@v2
         with:
-          node-version: "14"
+          node-version: "16"
 
       - name: Install dependencies
-        run: |
-          yarn install
+        run: yarn install
 
-      - name: Pull Docker container
-        run: |
-          docker pull pipecraft/cutadapt:4.4
+      - name: Build project
+        run: yarn electron:build -p always
 
-      - name: Run bioinformatics tests
+      - name: Decode and save signing certificate
         run: |
-          node testData/cutadapt_test.js
+          echo ${{ secrets.SIGNING_CERTIFICATE }} | Out-File -FilePath signing_cert_base64.txt -Encoding ascii
+          [System.Convert]::FromBase64String((Get-Content -Path signing_cert_base64.txt)) | Set-Content -Path signing_cert.pfx -Encoding Byte
 
-      - name: Clean up
-        run: docker system prune -f
+      - name: Sign installer
+        run: |
+          signtool sign /f signing_cert.pfx /p ${{ secrets.SIGNING_PASSWORD }} /tr http://timestamp.digicert.com /td sha256 /fd sha256 /a dist_electron\pipecraft Setup 1.0.2.exe
+
+      - name: Publish artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: signed-installer
+          path: dist_electron\pipecraft Setup 1.0.5.exe
