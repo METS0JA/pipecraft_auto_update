@@ -20,11 +20,23 @@ jobs:
           node-version: "16"
 
       - name: Install dependencies
+        shell: pwsh
         run: |
-          until yarn install; do
-            echo "Retrying yarn install..."
-            sleep 5
-          done
+          $maxRetries = 5
+          $retryCount = 0
+          while ($retryCount -lt $maxRetries) {
+            try {
+              yarn install
+              if ($?) { break }
+            } catch {
+              Write-Host "Retrying yarn install..."
+              Start-Sleep -Seconds 5
+              $retryCount++
+            }
+          }
+          if ($retryCount -eq $maxRetries) {
+            throw "yarn install failed after $maxRetries attempts"
+          }
 
       - name: Build project
         run: yarn electron:build -p always
