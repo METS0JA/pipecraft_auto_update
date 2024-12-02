@@ -56,26 +56,15 @@ jobs:
           echo ${{ secrets.SIGNING_CERTIFICATE }} | Out-File -FilePath signing_cert_base64.txt -Encoding ascii
           [System.Convert]::FromBase64String((Get-Content -Path signing_cert_base64.txt)) | Set-Content -Path signing_cert.pfx -AsByteStream
 
+      - name: Debug signtool path
+        run: echo ${{ steps.signtool.outputs.signtool-x64 }}
+        shell: pwsh
+
       - name: Sign installer
         run: |
           $signtoolPath = "${{ steps.signtool.outputs.signtool-x64 }}"
           & $signtoolPath sign /f signing_cert.pfx /p ${{ secrets.SIGNING_PASSWORD }} /tr http://timestamp.digicert.com /td sha256 /fd sha256 /a dist_electron\pipecraft Setup 1.0.5.exe
         shell: pwsh
-
-      - name: Publish artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: signed-installer
-          path: dist_electron\pipecraft Setup 1.0.5.exe
-
-      - name: Decode and save signing certificate
-        run: |
-          echo ${{ secrets.SIGNING_CERTIFICATE }} | Out-File -FilePath signing_cert_base64.txt -Encoding ascii
-          [System.Convert]::FromBase64String((Get-Content -Path signing_cert_base64.txt)) | Set-Content -Path signing_cert.pfx -AsByteStream
-
-      - name: Sign installer
-        run: |
-          & "C:\Program Files (x86)\Windows Kits\10\bin\x64\signtool.exe" sign /f signing_cert.pfx /p ${{ secrets.SIGNING_PASSWORD }} /tr http://timestamp.digicert.com /td sha256 /fd sha256 /a dist_electron\pipecraft Setup 1.0.5.exe
 
       - name: Publish artifact
         uses: actions/upload-artifact@v3
