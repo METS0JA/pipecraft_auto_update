@@ -44,7 +44,7 @@ jobs:
       - name: Decode and save signing certificate
         run: |
           echo ${{ secrets.SIGNING_CERTIFICATE }} | Out-File -FilePath signing_cert_base64.txt -Encoding ascii
-          [System.Convert]::FromBase64String((Get-Content -Path signing_cert_base64.txt)) | Set-Content -Path signing_cert.pfx -Encoding Byte
+          [System.Convert]::FromBase64String((Get-Content -Path signing_cert_base64.txt)) | Set-Content -Path signing_cert.pfx -AsByteStream
 
       - name: Sign installer
         run: |
