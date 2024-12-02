@@ -41,8 +41,16 @@ jobs:
       - name: Build project
         run: yarn electron:build -p always
 
-      - name: Install signtool
-        run: choco install signtool -y
+      - name: Download and extract signtool
+        run: |
+          $url = "https://go.microsoft.com/fwlink/?linkid=2083338"
+          $output = "winsdksetup.exe"
+          Invoke-WebRequest -Uri $url -OutFile $output
+          Start-Process -FilePath $output -ArgumentList "/quiet", "/features", "OptionId.WindowsDesktopDebuggers" -Wait
+          $signtoolPath = "C:\Program Files (x86)\Windows Kits\10\bin\x64\signtool.exe"
+          if (-Not (Test-Path $signtoolPath)) {
+            throw "signtool not found at $signtoolPath"
+          }
 
       - name: Decode and save signing certificate
         run: |
@@ -52,9 +60,6 @@ jobs:
       - name: Sign installer
         run: |
           $signtoolPath = "C:\Program Files (x86)\Windows Kits\10\bin\x64\signtool.exe"
-          if (-Not (Test-Path $signtoolPath)) {
-            throw "signtool not found at $signtoolPath"
-          }
           & $signtoolPath sign /f signing_cert.pfx /p ${{ secrets.SIGNING_PASSWORD }} /tr http://timestamp.digicert.com /td sha256 /fd sha256 /a dist_electron\pipecraft Setup 1.0.5.exe
         shell: pwsh
 
