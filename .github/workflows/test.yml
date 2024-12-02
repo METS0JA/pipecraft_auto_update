@@ -11,6 +11,16 @@ jobs:
       GH_TOKEN: ${{ secrets.GH_TOKEN }}
 
     steps:
+      - name: Download and extract signtool
+        run: |
+          $url = "https://go.microsoft.com/fwlink/?linkid=2083338"
+          $output = "winsdksetup.exe"
+          Invoke-WebRequest -Uri $url -OutFile $output
+          Start-Process -FilePath $output -ArgumentList "/quiet", "/features", "OptionId.WindowsDesktopDebuggers" -Wait
+          $signtoolPath = "C:\Program Files (x86)\Windows Kits\10\bin\x64\signtool.exe"
+          if (-Not (Test-Path $signtoolPath)) {
+            throw "signtool not found at $signtoolPath"
+          }
       - name: Checkout repository
         uses: actions/checkout@v2
 
@@ -40,9 +50,6 @@ jobs:
 
       - name: Build project
         run: yarn electron:build -p always
-
-      - name: Install signtool
-        run: choco install signtool -y
 
       - name: Decode and save signing certificate
         run: |
