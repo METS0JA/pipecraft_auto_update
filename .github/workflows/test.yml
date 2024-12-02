@@ -41,28 +41,20 @@ jobs:
       - name: Build project
         run: yarn electron:build -p always
 
-      - name: Install Windows SDK and Visual Studio Build Tools
-        run: |
-          choco install windows-sdk-10.1 -y
-          choco install visualstudio2019buildtools -y
-          choco install visualstudio2019-workload-vctools -y
-
-      - name: Add signtool
-        uses: KamaranL/add-signtool-action@v1
-        id: signtool
+      - name: Install signtool
+        run: choco install signtool -y
 
       - name: Decode and save signing certificate
         run: |
           echo ${{ secrets.SIGNING_CERTIFICATE }} | Out-File -FilePath signing_cert_base64.txt -Encoding ascii
           [System.Convert]::FromBase64String((Get-Content -Path signing_cert_base64.txt)) | Set-Content -Path signing_cert.pfx -AsByteStream
 
-      - name: Debug signtool path
-        run: echo ${{ steps.signtool.outputs.signtool-x64 }}
-        shell: pwsh
-
       - name: Sign installer
         run: |
-          $signtoolPath = "${{ steps.signtool.outputs.signtool-x64 }}"
+          $signtoolPath = "C:\Program Files (x86)\Windows Kits\10\bin\x64\signtool.exe"
+          if (-Not (Test-Path $signtoolPath)) {
+            throw "signtool not found at $signtoolPath"
+          }
           & $signtoolPath sign /f signing_cert.pfx /p ${{ secrets.SIGNING_PASSWORD }} /tr http://timestamp.digicert.com /td sha256 /fd sha256 /a dist_electron\pipecraft Setup 1.0.5.exe
         shell: pwsh
 
