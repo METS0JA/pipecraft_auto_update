@@ -54,7 +54,7 @@ jobs:
 
       - name: Sign installer
         run: |
-          signtool sign /f signing_cert.pfx /p ${{ secrets.SIGNING_PASSWORD }} /tr http://timestamp.digicert.com /td sha256 /fd sha256 /a dist_electron\pipecraft Setup 1.0.2.exe
+          & "C:\Program Files (x86)\Windows Kits\10\bin\x64\signtool.exe" sign /f signing_cert.pfx /p ${{ secrets.SIGNING_PASSWORD }} /tr http://timestamp.digicert.com /td sha256 /fd sha256 /a dist_electron\pipecraft Setup 1.0.5.exe
 
       - name: Publish artifact
         uses: actions/upload-artifact@v3
