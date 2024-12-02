@@ -24,7 +24,7 @@ jobs:
           until yarn install; do
             echo "Retrying yarn install..."
             sleep 5
-            done
+          done
 
       - name: Build project
         run: yarn electron:build -p always
