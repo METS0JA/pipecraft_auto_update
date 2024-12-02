@@ -19,6 +19,12 @@ jobs:
         with:
           node-version: "16"
 
+      - name: Install Windows SDK
+        run: |
+          choco install windows-sdk-10.1 -y
+          choco install visualstudio2019buildtools -y
+          choco install visualstudio2019-workload-vctools -y
+
       - name: Install dependencies
         shell: pwsh
         run: |
