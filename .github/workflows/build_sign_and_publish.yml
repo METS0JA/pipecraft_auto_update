@@ -77,7 +77,7 @@ jobs:
       - name: Sign installer
         run: |
           $signtoolPath = "C:\Program Files (x86)\Windows Kits\10\bin\x64\signtool.exe"
-          & $signtoolPath sign /f signing_cert.pfx /p ${{ secrets.SIGNING_PASSWORD }} /tr http://timestamp.digicert.com /td sha256 /fd sha256 /a dist_electron\pipecraft Setup 1.0.5.exe
+          & $signtoolPath sign /debug /f signing_cert.pfx /p ${{ secrets.SIGNING_PASSWORD }} /tr http://timestamp.digicert.com /td sha256 /fd sha256 /a dist_electron\pipecraft Setup 1.0.5.exe
         shell: pwsh
 
       - name: Publish artifact
