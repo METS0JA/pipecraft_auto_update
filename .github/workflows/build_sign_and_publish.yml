@@ -61,6 +61,17 @@ jobs:
           echo ${{ secrets.SIGNING_CERTIFICATE }} | Out-File -FilePath signing_cert_base64.txt -Encoding ascii
           [System.Convert]::FromBase64String((Get-Content -Path signing_cert_base64.txt)) | Set-Content -Path signing_cert.pfx -AsByteStream
 
+      - name: Import certificate to store
+        run: |
+          $certPassword = "${{ secrets.SIGNING_PASSWORD }}"
+          $certPath = "signing_cert.pfx"
+          $cert = New-Object System.Security.Cryptography.X509Certificates.X509Certificate2
+          $cert.Import($certPath, $certPassword, [System.Security.Cryptography.X509Certificates.X509KeyStorageFlags]::PersistKeySet)
+          $store = New-Object System.Security.Cryptography.X509Certificates.X509Store([System.Security.Cryptography.X509Certificates.StoreName]::My, [System.Security.Cryptography.X509Certificates.StoreLocation]::CurrentUser)
+          $store.Open([System.Security.Cryptography.X509Certificates.OpenFlags]::ReadWrite)
+          $store.Add($cert)
+          $store.Close()
+
       - name: Sign installer
         run: |
           $signtoolPath = "C:\Program Files (x86)\Windows Kits\10\bin\x64\signtool.exe"
