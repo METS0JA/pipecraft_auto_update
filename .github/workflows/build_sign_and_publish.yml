@@ -19,6 +19,21 @@ jobs:
         with:
           node-version: "16"
 
+      - name: Install Windows SDK components
+        run: |
+          choco install windows-sdk-10.0 -y
+          choco install visualstudio2019buildtools -y
+          choco install visualstudio2019-workload-vctools -y
+
+      - name: Verify signtool installation
+        run: |
+          $signtoolPath = "C:\Program Files (x86)\Windows Kits\10\bin\x64\signtool.exe"
+          if (-Not (Test-Path $signtoolPath)) {
+            throw "signtool not found at $signtoolPath"
+          }
+          & $signtoolPath /?
+        shell: pwsh
+
       - name: Install dependencies
         shell: pwsh
         run: |
@@ -39,18 +54,7 @@ jobs:
           }
 
       - name: Build project
-        run: yarn electron:build -p always
-
-      - name: Download and extract signtool
-        run: |
-          $url = "https://go.microsoft.com/fwlink/?linkid=2083338"
-          $output = "winsdksetup.exe"
-          Invoke-WebRequest -Uri $url -OutFile $output
-          Start-Process -FilePath $output -ArgumentList "/quiet", "/features", "OptionId.WindowsDesktopDebuggers" -Wait
-          $signtoolPath = "C:\Program Files (x86)\Windows Kits\10\bin\x64\signtool.exe"
-          if (-Not (Test-Path $signtoolPath)) {
-            throw "signtool not found at $signtoolPath"
-          }
+        run: yarn electron:build
 
       - name: Decode and save signing certificate
         run: |
